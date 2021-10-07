@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendations-no-bias-deploy
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recommendations-no-bias-deploy
+  template:
+    metadata:
+      labels:
+        app: recommendations-no-bias-deploy
+    spec:
+      containers:
+      - image: recommendations-no-bias-deploy
+        name: recommendations-no-bias-deploy
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "serve.py"]
+        env:
+        - name: RUNTIME_ENV
+          value: "local"
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        startupProbe:
+          tcpSocket:
+            port: 8000
+          failureThreshold: 30
+          periodSeconds: 10
+    
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: recommendations-no-bias-deploy
+  labels:
+    app: recommendations-no-bias-deploy
+  namespace: default
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 6001
+    targetPort: 8000
+  selector:
+    app: recommendations-no-bias-deploy
+    
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: recommendations-no-bias-deploy
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: recommendations-no-bias-deploy
+            port:
+              number: 8000

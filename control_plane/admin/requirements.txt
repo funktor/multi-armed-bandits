@@ -1,0 +1,5 @@
+joblib
+flask
+gunicorn
+requests
+mmh3

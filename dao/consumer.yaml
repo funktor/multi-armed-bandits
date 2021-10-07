@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dao-consumer
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dao-consumer
+  template:
+    metadata:
+      labels:
+        app: dao-consumer
+    spec:
+      containers:
+      - image: dao
+        name: dao-consumer
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "consumer.py"]

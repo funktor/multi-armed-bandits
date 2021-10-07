@@ -1,0 +1,1 @@
+kubectl delete deployment,service,ingress recommendations-no-bias-deploy
